@@ -1,0 +1,269 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+import org.apache.tools.ant.filters.FixCrLfFilter
+
+buildscript {
+    dependencies {
+        classpath "mysql:mysql-connector-java:${mysqlConnectorJavaVersion}"
+    }
+}
+
+
+
+
+plugins {
+    id 'org.springframework.boot' version '2.7.2'
+    id 'io.spring.dependency-management' version '1.0.12.RELEASE'
+    id 'java'
+}
+
+
+configurations {
+    developmentOnly
+    runtimeClasspath {
+        extendsFrom developmentOnly
+    }
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+dependencies {
+    /*通用库依赖------start*/
+    implementation libraries.hutool_extra
+    implementation libraries.hutool_json
+    implementation libraries.caffeine
+    implementation libraries.commons_pool2
+    implementation libraries.fastjson
+    implementation libraries.yy_base
+
+    /*通用库依赖------end*/
+
+    /*日志和日志编码依赖------start*/
+    implementation 'net.logstash.logback:logstash-logback-encoder:7.2'
+    /*日志和日志编码依赖------end*/
+
+    /*WORD、PDF、图像处理依赖------start*/
+    implementation libraries.aspose_words
+    implementation libraries['pdfbox']
+    implementation 'com.twelvemonkeys.imageio:imageio-tiff:3.7.1'
+    /*PDF和图像处理依赖------end*/
+
+    /*Spring Boot核心依赖------start*/
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    /*Spring Boot核心依赖------end*/
+
+    /*Spring Boot配置处理依赖------start*/
+    annotationProcessor libraries.spring_boot_configuration_processor
+    /*Spring Boot配置处理依赖------end*/
+
+    /*MyBatis Plus相关依赖------start*/
+    implementation libraries.mybatis_plus_boot_starter
+    implementation libraries.mybatis_plus_generator
+    /*MyBatis Plus相关依赖------end*/
+
+    /*数据库连接池和数据源依赖------start*/
+    implementation libraries.druid_spring_boot_starter
+    implementation libraries.dynamic_datasource_starter
+    /*数据库连接池和数据源依赖------end*/
+
+    /*API文档生成依赖------start*/
+    implementation libraries.springdoc_openapi_ui
+    /*API文档生成依赖------end*/
+
+    /*微服务相关依赖------start*/
+    implementation libraries.feign_slf4j
+    implementation libraries.micrometer_core
+    implementation libraries.scs_alibaba_nacos_config
+    implementation libraries.scs_alibaba_dubbo
+    implementation libraries.scs_alibaba_rocketmq
+    implementation libraries.spring_cloud_starter_bootstrap
+    implementation libraries.spring_cloud_starter_sleuth
+    implementation 'org.springframework.cloud:spring-cloud-starter'
+    implementation 'org.springframework.boot:spring-boot-starter-integration'
+    implementation 'org.springframework.integration:spring-integration-stream'
+    implementation 'org.springframework.integration:spring-integration-mqtt'
+    /*微服务相关依赖------end*/
+
+    /*子模块依赖------start*/
+    implementation project(':quality-inspection-api')
+    /*子模块依赖------end*/
+
+    /*平台API依赖------start*/
+    implementation libraries.platform_api
+    /*平台API依赖------end*/
+
+    /*通用库依赖------start*/
+    implementation libraries.erms_common
+    compileOnly libraries.lombok
+    compileOnly libraries.mapstruct
+    compileOnly libraries.mapstruct_jdk8
+    annotationProcessor libraries.lombok_mapstruct_binding
+    annotationProcessor libraries.mapstruct_processor
+    annotationProcessor libraries.lombok
+    /*通用库依赖------end*/
+
+    /*运行时依赖------start*/
+    runtimeOnly 'mysql:mysql-connector-java'
+    /*运行时依赖------*/
+
+    /*加密------start*/
+    implementation libraries.jasypt_spring_boot_starter
+    /*加密------end*/
+
+    // Apache POI for Excel
+    implementation group: 'org.apache.poi', name: 'poi', version: '5.0.0'
+    implementation group: 'org.apache.poi', name: 'poi-ooxml', version: '5.0.0'
+
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+        mavenBom "com.alibaba.cloud:spring-cloud-alibaba-dependencies:${springCloudAlibabaVersion}"
+    }
+}
+applicationDefaultJvmArgs = ['-Xdebug',
+                             '-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=0.0.0.0:6666',
+                             '-Xms512m', '-Xmx1024m', '-Duser.timezone=GMT+08']
+
+jar {
+    enabled = true
+    exclude ('*.properties')
+    exclude ('*.xml')
+    exclude ('*.yaml')
+    exclude ('*.yml')
+}
+
+def profile = "local"
+if (hasProperty("profile")) {
+    profile = findProperty("profile")
+}
+if (hasProperty("tag")) {
+    version = findProperty("tag")
+}
+
+mainClassName = 'com.docimax.qualityinspection.QualityInspectionApplication'
+
+if ("${profile}".toString() == "prod") {
+    applicationDefaultJvmArgs = ['-Xms512m','-Xmx4096m','-Duser.timezone=GMT+08',
+                                 '-XX:+HeapDumpOnOutOfMemoryError',
+                                 '-XX:HeapDumpPath=/opt/docimax/demo-service/']
+}
+
+sourceSets {
+    main {
+        resources {
+            srcDirs = ["config/resources/$profile", "src/main/resources"]
+        }
+    }
+}
+// 根据环境选择配置脚本，将其解析为key/value字典
+Properties props = new Properties()
+props.load(new FileInputStream(new File("$projectDir/config/resources/${profile}/flyway.conf")))
+props.setProperty("microservice", "${project.name}-${project.version}.jar")
+props.setProperty("mysql-connector-java", "mysql-connector-java-${mysqlConnectorJavaVersion}.jar")
+props.setProperty("flyway-core", "flyway-core-${flywayVersion}.jar")
+props.setProperty("flyway-commandline", "flyway-commandline-${flywayVersion}.jar")
+
+distributions {
+    main {
+        contents {
+            from(new File("$projectDir/scripts/shell")) {
+                into "bin"
+            }
+            from(new File("$projectDir/scripts/flyway")) {
+                filter(FixCrLfFilter)
+                filter(ReplaceTokens, tokens: props)
+                filteringCharset = 'UTF-8'
+                into "bin"
+            }
+            from(new File("$projectDir/config/resources/$profile/flyway.conf")) {
+                filter(FixCrLfFilter)
+                filter(ReplaceTokens, tokens: props)
+                filteringCharset = 'UTF-8'
+                into "bin"
+            }
+            from(new File("$projectDir/scripts/README.md")) {
+                into "bin"
+            }
+
+            from(new File("config/resources/$profile/")) {
+                eachFile {
+                    if (it.name.split('\\.')[-1] == "properties" || it.name.split('\\.')[-1] == "yml" || it.name.split('\\.')[-1] == "xml" || it.name.split('\\.')[-1] == "yaml") {
+                        filter(FixCrLfFilter)
+                        filter(ReplaceTokens, tokens: props)
+                        filteringCharset = 'UTF-8'
+                    }
+                }
+                into "config"
+            }
+            from(new File("${buildDir}/resources/main/git.properties")) {
+                into "config"
+            }
+        }
+    }
+}
+
+startScripts {
+    classpath = files('$APP_HOME/config') + classpath
+    doLast {
+        def windowsScriptFile = file getWindowsScript()
+        def unixScriptFile = file getUnixScript()
+        windowsScriptFile.text = windowsScriptFile.text.replace('%APP_HOME%\\lib\\config', '%APP_HOME%\\config')
+        def winFileText = windowsScriptFile.text
+        winFileText = winFileText.replaceAll('set CLASSPATH=.*', 'rem original CLASSPATH declaration replaced by:\nset CLASSPATH=%APP_HOME%\\\\lib\\\\\\*\nset CLASSPATH=%APP_HOME%\\\\config;%CLASSPATH%')
+        winFileText = winFileText + ''
+        windowsScriptFile.text = winFileText
+
+        unixScriptFile.text = unixScriptFile.text.replace('$APP_HOME/lib/config', '$APP_HOME/config')
+        unixScriptFile.text = unixScriptFile.text.replaceAll('(?m)^APP_HOME=', 'export APP_HOME=')
+        //windowsScriptFile.text = windowsScriptFile.text.replace('%APP_HOME%\\lib\\webapp', '%APP_HOME%\\webapp')
+        unixScriptFile.text = unixScriptFile.text.replace('$APP_HOME/lib/webapp', '$APP_HOME/webapp')
+    }
+}
+
+// 清除现有的lib目录
+task clearJar(type: Delete) {
+    delete "$buildDir\\libs\\docLib"
+    delete "$buildDir\\libs\\thirdLib"
+}
+
+// 将依赖包复制到lib目录
+task copyThirdJar(type: Copy, dependsOn: 'clearJar') {
+    from configurations.compileClasspath
+    into "$buildDir\\libs\\thirdLib"
+}
+
+task copyDocJar(type: Copy, dependsOn: 'clearJar') {
+    from configurations.compileClasspath
+    into "$buildDir\\libs\\docLib"
+}
+
+task unzipFilesToDocker(type: Copy, dependsOn: distZip) {
+    def zipFile = distZip.getArchivePath().getPath()
+    def outputDir = file("${buildDir}/unzipTmp")
+
+    from zipTree(zipFile)
+    into outputDir
+}
+
+task copyFilesToDocker(type: Copy, dependsOn: unzipFilesToDocker) {
+    from "${buildDir}/unzipTmp/${project.name}-${project.version}"
+    into "${buildDir}/docker/services"
+}
+
+task copyDockerFilesToDocker(type: Copy, dependsOn: copyFilesToDocker) {
+    from "$projectDir/config/Dockerfile"
+    into "${buildDir}/docker"
+}
+
+bootJar {
+    // lib目录的清除和复制任务
+}
+
+test {
+    useJUnitPlatform()
+}

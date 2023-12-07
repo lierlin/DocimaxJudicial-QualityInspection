@@ -1,0 +1,102 @@
+ext {
+    // artifactRepoBase
+    artifactRepoBase = "http://172.30.199.252:8081/repository/maven-releases/"
+    repositoryRepoBase = "http://172.30.199.252:8081/repository/maven-public/"
+
+    // publish username & password
+    // 用户名密码配置在系统变量
+    deployUsername = "dev"
+    deployPassword = "dev@123"
+
+    set('springCloudVersion', "2021.0.3")
+    set('springCloudAlibabaVersion', "2021.0.1.0")
+    mysqlConnectorJavaVersion = '8.0.29'
+    flywayVersion = '8.5.13'
+}
+
+// 各种可能会用到的jar包
+ext.libraries = [
+        spring_boot_starter                   : "org.springframework.boot:spring-boot-starter",
+        spring_boot_starter_data_jpa          : "org.springframework.boot:spring-boot-starter-data-jpa",
+        spring_boot_starter_web               : "org.springframework.boot:spring-boot-starter-web",
+        spring_boot_starter_test              : "org.springframework.boot:spring-boot-starter-test",
+        spring_boot_starter_tomcat            : "org.springframework.boot:spring-boot-starter-tomcat",
+        spring_boot_starter_data_rest         : "org.springframework.boot:spring-boot-starter-data-rest",
+        spring_boot_devtools                  : "org.springframework.boot:spring-boot-devtools",
+        spring_boot_starter_actuator          : "org.springframework.boot:spring-boot-starter-actuator",
+        spring_boot_starter_security          : "org.springframework.boot:spring-boot-starter-security",
+        spring_boot_starter_websocket         : "org.springframework.boot:spring-boot-starter-websocket",
+        spring_boot_starter_data_redis        : "org.springframework.boot:spring-boot-starter-data-redis",
+        spring_boot_starter_thymeleaf         : "org.springframework.boot:spring-boot-starter-thymeleaf",
+        spring_boot_starter_data_elasticsearch: "org.springframework.boot:spring-boot-starter-data-elasticsearch",
+        spring_boot_configuration_processor   : "org.springframework.boot:spring-boot-configuration-processor",
+
+        spring_cloud_starter_bootstrap        : "org.springframework.cloud:spring-cloud-starter-bootstrap",
+        spring_cloud_starter_openfeign        : "org.springframework.cloud:spring-cloud-starter-openfeign",
+        spring_cloud_loadbalancer             : "org.springframework.cloud:spring-cloud-loadbalancer",
+        spring_cloud_starter_sleuth           : "org.springframework.cloud:spring-cloud-starter-sleuth",
+
+        scs_alibaba_nacos_discovery           : "com.alibaba.cloud:spring-cloud-starter-alibaba-nacos-discovery",
+        scs_alibaba_nacos_config              : "com.alibaba.cloud:spring-cloud-starter-alibaba-nacos-config",
+        scs_alibaba_dubbo                     : "com.alibaba.cloud:spring-cloud-starter-dubbo",
+        scs_alibaba_sentinel                  : "com.alibaba.cloud:spring-cloud-starter-alibaba-sentinel",
+        scs_alibaba_rocketmq                  : "org.apache.rocketmq:rocketmq-spring-boot-starter:2.2.2",
+       // scs_stream_rabbit                     : "org.springframework.cloud:spring-cloud-starter-stream-rabbit",
+
+        mysql_connector_java                  : "mysql:mysql-connector-java",
+        druid_spring_boot_starter             : "com.alibaba:druid-spring-boot-starter:1.2.8",
+        mybatis_spring_boot_starter           : "org.mybatis.spring.boot:mybatis-spring-boot-starter:2.2.1",
+        mybatis_plus_boot_starter             : "com.baomidou:mybatis-plus-boot-starter:3.5.2",
+        mybatis_plus_generator                : "com.baomidou:mybatis-plus-generator:3.5.2",
+        dynamic_datasource_starter            : "com.baomidou:dynamic-datasource-spring-boot-starter:3.5.1",
+        jasypt_spring_boot_starter            : "com.github.ulisesbocchio:jasypt-spring-boot-starter:3.0.4",
+
+        velocity_engine_core                  : "org.apache.velocity:velocity-engine-core:2.2",
+        commons_lang3                         : "org.apache.commons:commons-lang3:3.11",
+        validation_api                        : "javax.validation:validation-api:2.0.1.Final",
+        hibernate_validator                   : "org.hibernate.validator:hibernate-validator:7.0.2.Final",
+
+        // Cache JDK 1.8 使用 2.9.3 版本
+        caffeine                              : "com.github.ben-manes.caffeine:caffeine:2.9.3",
+        //json
+        jackson_databind                      : "com.fasterxml.jackson.core:jackson-databind:2.13.3",
+        jackson_annotations                   : "com.fasterxml.jackson.core:jackson-annotations:1.5.20",
+        jackson_dataformat_yaml               : "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.13.3",
+        prometheus                            : "io.micrometer:micrometer-registry-prometheus:1.8.2",
+        lombok                                : "org.projectlombok:lombok:1.18.22",
+        commons_pool2                         : "org.apache.commons:commons-pool2:2.11.1",
+        swagger_annotations                   : "io.swagger.core.v3:swagger-annotations:2.2.2",
+        springdoc_openapi_ui                  : "org.springdoc:springdoc-openapi-ui:1.6.9",
+
+        mapstruct                             : "org.mapstruct:mapstruct:1.5.2.Final",
+        mapstruct_jdk8                        : "org.mapstruct:mapstruct-jdk8:1.5.2.Final",
+        mapstruct_processor                   : "org.mapstruct:mapstruct-processor:1.5.2.Final",
+        lombok_mapstruct_binding              : "org.projectlombok:lombok-mapstruct-binding:0.2.0",
+
+       // spring_rabbit_test                    : "org.springframework.amqp:spring-rabbit-test",
+        hutool_json                           : "cn.hutool:hutool-json:5.8.20",
+        //hutool_poi                            : "cn.hutool:hutool-all:5.8.20",
+        hutool_core                           : "cn.hutool:hutool-core:5.8.20",
+        hutool_crypto                         : "cn.hutool:hutool-crypto:5.8.20",
+        hutool_extra                          : "cn.hutool:hutool-extra:5.8.20",
+        yy_base                               : "com.docimax.base:yy-base:1.0.10_test",
+        postgresql                            : "org.postgresql:postgresql:42.2.18",
+        apollo_client                         : "com.ctrip.framework.apollo:apollo-client:1.7.0",
+        qlexpress                             : "com.alibaba:QLExpress:3.2.4",
+        commons_io                            : "commons-io:commons-io:2.5",
+        zxing_core                            : "com.google.zxing:core:3.3.0",
+        zxing_javase                          : "com.google.zxing:javase:3.3.0",
+        minio                                 : "io.minio:minio:8.2.1",
+        okhttp                                : "com.squareup.okhttp3:okhttp:4.9.1",
+        slf4j_api                             : "org.slf4j:slf4j-api:1.7.36",
+        fastjson                              : "com.alibaba:fastjson:2.0.10",
+        platform_api                          : "com.docimax:platform-api:1.0.5",
+        erms_common                           : "com.docimax.erms:erms-common:1.0.20",
+        aspose_words                          : "com.aspose:aspose-words:20.12-jdk17-cracked@jar",
+        yy_base                               : "com.docimax.base:yy-base:1.0.10",
+        dom4j                                 : "org.dom4j:dom4j:2.1.1",
+        feign_slf4j                           : "io.github.openfeign:feign-slf4j:11.8",
+        micrometer_core                       : "io.micrometer:micrometer-core:1.8.2",
+        pdfbox                                : "org.apache.pdfbox:pdfbox:2.0.9",
+        yy_base                               : "com.docimax.base:yy-base:1.0.10"
+]

@@ -1,0 +1,54 @@
+apply from: 'dependencies.gradle'
+
+// 定义所有工程共有的逻辑
+allprojects {
+    group "com.docimax.quality-inspection"
+    version "1.0.0"      //统一定义项目的版本，打包的时候版本就是这个
+
+    apply plugin: 'java' // Java插件用于生成Jar包
+    apply plugin: 'maven-publish'
+
+    repositories {
+        mavenLocal {}//本地仓库
+        maven {
+            allowInsecureProtocol = true
+            url "${repositoryRepoBase}"
+            credentials {
+                username deployUsername
+                password deployPassword
+            }
+        }
+        maven { url 'https://maven.aliyun.com/repository/public' }//阿里云仓库
+        mavenCentral() // maven中心仓库
+    }
+}
+
+
+// 配置项目使用的插件
+configure(project(':quality-inspection-service')) {
+    // 用于生成bundle文件
+    apply plugin: 'application'
+}
+
+// 定义所有子工程共有的逻辑
+subprojects {
+    // 设置最低Java兼容版本
+    sourceCompatibility = '8'
+    // 生成class的Java版本
+    targetCompatibility = '8'
+
+    // 设置编译时的编码格式
+    tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
+    }
+}
+
+// 将所有子项目的源代码打成Jar包，用于上传到Maven仓库
+task sourcesJar(type: Jar, dependsOn: classes) {
+    archiveClassifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+artifacts {
+    archives sourcesJar
+}

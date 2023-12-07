@@ -1,0 +1,3 @@
+rootProject.name = 'quality-inspection'
+include 'quality-inspection-api'
+include 'quality-inspection-service'

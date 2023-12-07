@@ -1,0 +1,36 @@
+plugins {
+    id 'java-library'
+    id "nebula.optional-base" version "5.0.3"
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+}
+
+task sourceJar(type: Jar) {
+    from sourceSets.main.allJava
+}
+
+publishing {
+    repositories {
+        maven {
+            allowInsecureProtocol = true
+            url "${artifactRepoBase}"
+            credentials {
+                username deployUsername
+                password deployPassword
+            }
+        }
+    }
+
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+
+            artifact sourceJar {
+                classifier "sources"
+            }
+        }
+    }
+}

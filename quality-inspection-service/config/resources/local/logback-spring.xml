@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    <springProperty scope="context" name="appName" source="spring.application.name" defaultValue="quality-inspection"/>
+    <springProperty scope="context" name="logPath" source="logging.file.path" defaultValue="/opt/docimax/logs"/>
+
+    <property name="LOG_PATH" value="${logPath}" />
+    <property name="maxHistory" value="30"/>
+    <property name="maxFileSize" value="50MB"/>
+
+    <!--格式化输出：%d表示日期，%-5level：日志级别从左显示5个字符宽度(%5p),%thread表示线程名(%t),
+    %logger:%L 类的全路径及行号(%c:%L),%msg：日志消息，%n是换行符-->
+    <property name="FILE_LOG_PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [${appName},%X{traceId:-},%X{spanId:-},%X{parentSpanId:-}] [%thread] %logger:%L  :%msg%n"/>
+    <property name="CONSOLE_LOG_PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} %highlight(%-5level) [${appName},%yellow(%X{traceId:-}),%green(%X{spanId:-}),%blue(%X{parentSpanId:-})] [%yellow(%thread)] %green(%logger:%L)   :%msg%n"/>
+
+    <!-- 控制台打印 -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+            <charset>utf-8</charset>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>debug</level>
+        </filter>
+    </appender>
+
+    <!-- 按照每天生成日志文件 -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- 正在记录的日志文件的路径及文件名 -->
+        <file>${LOG_PATH}/${appName}.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--日志文件输出的文件名 -->
+            <fileNamePattern>${LOG_PATH}/${appName}-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <!--日志文件保留天数 -->
+            <!-- 日志最大的历史 30天 -->
+            <maxHistory>${maxHistory}</maxHistory>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <!-- maxFileSize:这是活动文件的大小，默认值是10MB，这里设置为50MB -->
+                <maxFileSize>${maxFileSize}</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <totalSizeCap>3GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <pattern>
+                    <pattern>
+                        {
+                        "level": "%level",
+                        "appName": "${appName}",
+                        "traceId": "%X{spanId:-}",
+                        "spanId": "%X{spanId:-}",
+                        "parentSpanId": "%X{parentSpanId:-}",
+                        "remoteIp": "%X{remoteIp}",
+                        "thread": "%thread",
+                        "class": "%file:%line",
+                        "msg": "%message",
+                        "stack_trace": "%exception{10}"
+                        }
+                    </pattern>
+                </pattern>
+            </providers>
+        </encoder>
+        <!--日志文件最大的大小 <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+            <MaxFileSize>10KB</MaxFileSize> </triggeringPolicy> -->
+    </appender>
+
+    <!-- 按照每天生成日志文件 -->
+    <appender name="auditLog_Appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- 正在记录的日志文件的路径及文件名 -->
+        <File>${LOG_PATH}/${appName}-audit.log</File>
+        <append>true</append>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--日志文件输出的文件名 -->
+            <fileNamePattern>${LOG_PATH}/${appName}-audit-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <!--日志文件保留天数 -->
+            <!-- 日志最大的历史 30天 -->
+            <maxHistory>${maxHistory}</maxHistory>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <!-- maxFileSize:这是活动文件的大小，默认值是10MB，这里设置为50MB -->
+                <maxFileSize>${maxFileSize}</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <totalSizeCap>3GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <provider class="net.logstash.logback.composite.loggingevent.ArgumentsJsonProvider">
+                    <includeNonStructuredArguments>true</includeNonStructuredArguments>
+                </provider>
+                <pattern>
+                    <pattern>
+                        {
+                        "level": "%level",
+                        "appName": "${appName}",
+                        "traceId": "%X{spanId:-}",
+                        "spanId": "%X{spanId:-}",
+                        "parentSpanId": "%X{parentSpanId:-}",
+                        "remoteIp": "%X{remoteIp}",
+                        "thread": "%thread",
+                        "class": "%file:%line",
+<!--                        "msg": "%message",-->
+                        "stack_trace": "%exception{10}"
+                        }
+                    </pattern>
+                </pattern>
+            </providers>
+        </encoder>
+        <!--日志文件最大的大小 <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+            <MaxFileSize>10KB</MaxFileSize> </triggeringPolicy> -->
+    </appender>
+
+    <appender name="JsonConsole" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <timestamp>
+                    <timeZone>UTC</timeZone>
+                </timestamp>
+                <provider class="net.logstash.logback.composite.loggingevent.ArgumentsJsonProvider">
+                    <includeNonStructuredArguments>true</includeNonStructuredArguments>
+                </provider>
+                <pattern>
+                    <pattern>
+                        {
+                        "level": "%level",
+                        "appName": "${appName}",
+                        "traceId": "%X{spanId:-}",
+                        "spanId": "%X{spanId:-}",
+                        "parentSpanId": "%X{parentSpanId:-}",
+                        "remoteIp": "%X{remoteIp}",
+                        "thread": "%thread",
+                        "class": "%file:%line",
+                        "msg": "%message",
+                        "stack_trace": "%exception{10}"
+                        }
+                    </pattern>
+                </pattern>
+            </providers>
+        </encoder>
+    </appender>
+
+    <logger name="auditLog" additivity="false" level="INFO" >
+        <appender-ref ref="auditLog_Appender" />
+    </logger>
+
+    <root level="INFO">
+        <appender-ref ref="FILE"/>
+        <appender-ref ref="STDOUT"/>
+    </root>
+</configuration>
