@@ -1,9 +1,7 @@
-package com.docimax.qualityinspection.service.dao;
+package com.docimax.qualityinspection.service.dao.base;
 
 import com.docimax.erms.common.model.R;
 import com.docimax.qualityinspection.model.db.RuleEntity;
-
-import java.util.List;
 
 /**
  * @author : lierlin

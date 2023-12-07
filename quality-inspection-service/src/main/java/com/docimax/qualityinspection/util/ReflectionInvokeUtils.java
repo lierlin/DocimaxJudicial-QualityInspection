@@ -1,6 +1,9 @@
 package com.docimax.qualityinspection.util;
 
+import cn.hutool.core.lang.TypeReference;
 import cn.hutool.core.util.ReflectUtil;
+import cn.hutool.json.JSONUtil;
+import com.docimax.erms.common.model.R;
 
 import java.lang.reflect.Method;
 
@@ -12,7 +15,7 @@ import java.lang.reflect.Method;
  */
 public class ReflectionInvokeUtils {
 
-    public static Object invokeMethod(String classAndMethod, Object... args) {
+    public static R<String> invokeMethod(String classAndMethod, Object... args) {
         try {
             // 分割字符串以得到类名和方法名
             int lastDotIndex = classAndMethod.lastIndexOf('.');
@@ -35,10 +38,13 @@ public class ReflectionInvokeUtils {
             Method method = clazz.getMethod(methodName, parameterTypes);
 
             // 执行方法
-            return method.invoke(instance, args);
+            Object invoke = method.invoke(instance, args);
+            String jsonStr = JSONUtil.toJsonStr(invoke);
+            R<String> result = JSONUtil.toBean(jsonStr, new TypeReference<R<String>>() {
+            }, false);
+            return result;
         } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+            return R.error(e.getMessage());
         }
     }
 

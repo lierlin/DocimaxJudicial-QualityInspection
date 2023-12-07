@@ -28,7 +28,11 @@ public class RuleEntity extends BaseDBModel implements Serializable {
      */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
-
+    /**
+     * 场景 1:扫描 ,2:校验
+     */
+    @TableField(value = "scene")
+    private String scene;
     /**
      * 约束条件
      */
